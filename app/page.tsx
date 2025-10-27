@@ -200,10 +200,10 @@ export default function Landing() {
                 <ShieldCheck className="w-10 h-10 text-primary" />
               </div>
               <h1 className="text-4xl md:text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-green-500 mb-4">
-                Pepe Unchained V2
+                Unchained Debit Cards
               </h1>
               <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-8">
-                Securely manage your PEPU tokens with our decentralized virtual card platform
+                Securely manage your digital assets with our decentralized virtual card platform
               </p>
             </div>
 
@@ -211,7 +211,7 @@ export default function Landing() {
               <CardHeader className="space-y-1">
                 <CardTitle className="text-2xl font-bold">Connect Your Wallet</CardTitle>
                 <CardDescription className="text-muted-foreground">
-                  To get started with Pepe Card, connect your wallet
+                  To get started with Unchained Debit Cards, connect your wallet
                 </CardDescription>
               </CardHeader>
               <CardContent className="pt-4">
@@ -236,7 +236,7 @@ export default function Landing() {
                 {
                   icon: <Globe className="w-6 h-6 text-primary" />,
                   title: "Global Payments",
-                  description: "Spend your PEPU anywhere that accepts card payments"
+                  description: "Spend your digital assets anywhere that accepts card payments"
                 },
                 {
                   icon: <ShieldCheck className="w-6 h-6 text-primary" />,
@@ -317,12 +317,12 @@ export default function Landing() {
           <div className="text-center">
             <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
               {!showForm 
-                ? "Get Your PEPU Card" 
+                ? "Get Your Unchained Debit Card" 
                 : "Complete Your Profile"}
             </h1>
             <p className="mt-3 text-lg text-muted-foreground">
               {!showForm 
-                ? "Fund with PEPU. Spend anywhere."
+                ? "Fund with digital assets. Spend anywhere."
                 : "We need a few details to verify your identity"}
             </p>
           </div>
@@ -333,9 +333,9 @@ export default function Landing() {
                 <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 mb-4">
                   <CreditCard className="h-8 w-8 text-primary" />
                 </div>
-                <CardTitle className="text-2xl font-bold">PEPU Virtual Card</CardTitle>
+                <CardTitle className="text-2xl font-bold">Virtual Debit Card</CardTitle>
                 <CardDescription>
-                  Get your virtual card in minutes and start spending your PEPU anywhere
+                  Get your virtual card in minutes and start spending your digital assets anywhere
                 </CardDescription>
               </CardHeader>
               <CardContent className="pt-4">

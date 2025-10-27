@@ -8,9 +8,9 @@ import './globals.css'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'Pepe Unchained V2 - PEPU Card Platform',
-  description: 'Manage your PEPU tokens with our virtual card platform',
-  generator: 'Pepe Unchained',
+  title: 'Unchained Debit Cards - Virtual Card Platform',
+  description: 'Manage your digital assets with our virtual card platform',
+  generator: 'Unchained Debit Cards',
   themeColor: [
     { media: '(prefers-color-scheme: light)', color: '#ffffff' },
     { media: '(prefers-color-scheme: dark)', color: '#020817' },
