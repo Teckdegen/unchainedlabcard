@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { Card } from "./ui/card"
-import { Eye, EyeOff } from "lucide-react"
+import { Eye, EyeOff, CreditCard } from "lucide-react"
 
 interface VirtualCardProps {
   cardNumber: string
@@ -26,7 +26,7 @@ export function VirtualCard({
   const [showCVV, setShowCVV] = useState(false)
 
   return (
-    <Card variant="dark" className="relative overflow-hidden h-64 flex flex-col justify-between">
+    <Card className="relative overflow-hidden h-64 flex flex-col justify-between bg-gradient-to-br from-gray-900 to-black">
       <div className="absolute inset-0">
         <img
           src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-ax7SBeeNt2ao6E9dhH86Ivy51DaKms.png"
@@ -42,7 +42,7 @@ export function VirtualCard({
             <p className="text-3xl font-bold text-green-400">{balanceInfo}</p>
           </div>
           <div className="w-12 h-12 bg-green-400/20 rounded-lg flex items-center justify-center">
-            <span className="text-green-400 text-xl font-bold">💳</span>
+            <CreditCard size={24} className="text-green-400" />
           </div>
         </div>
       </div>

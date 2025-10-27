@@ -1,8 +1,21 @@
-import type React from "react"
+import type { Metadata } from 'next'
+import { Inter } from 'next/font/google'
+import { Toaster } from 'react-hot-toast'
+import { Web3Provider } from '@/components/Web3Provider'
+import { ThemeProvider } from '@/components/theme-provider'
+import './globals.css'
 
-import "./globals.css"
-import { Toaster } from "react-hot-toast"
-import { Web3Provider } from "@/components/Web3Provider"
+const inter = Inter({ subsets: ['latin'] })
+
+export const metadata: Metadata = {
+  title: 'Pepe Unchained V2 - PEPU Card Platform',
+  description: 'Manage your PEPU tokens with our virtual card platform',
+  generator: 'Pepe Unchained',
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#ffffff' },
+    { media: '(prefers-color-scheme: dark)', color: '#020817' },
+  ],
+}
 
 export default function RootLayout({
   children,
@@ -10,17 +23,33 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en">
-      <body>
+    <html lang="en" suppressHydrationWarning>
+      <body className={inter.className}>
         <Web3Provider>
-          <main className="min-h-screen">{children}</main>
-          <Toaster position="top-right" />
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="dark"
+            enableSystem
+            disableTransitionOnChange
+          >
+            <main className="min-h-screen bg-background">
+              <div className="relative flex min-h-screen flex-col">
+                {children}
+              </div>
+            </main>
+            <Toaster 
+              position="top-right"
+              toastOptions={{
+                style: {
+                  background: 'hsl(var(--background))',
+                  color: 'hsl(var(--foreground))',
+                  border: '1px solid hsl(var(--border))',
+                },
+              }}
+            />
+          </ThemeProvider>
         </Web3Provider>
       </body>
     </html>
   )
 }
-
-export const metadata = {
-  generator: 'v0.app'
-};
