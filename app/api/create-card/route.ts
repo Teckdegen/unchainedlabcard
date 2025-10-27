@@ -1,8 +1,28 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { cashwryePost } from "@/lib/cashwrye"
-import { getUserByWallet, updateUserCardCode, createCardOrder } from "@/lib/supabase-server"
 import { getCurrentUser, updateUser } from "@/lib/db"
 import { sendTG } from "@/lib/telegram"
+
+// Define the user type
+type User = {
+  id: string
+  wallet_address: string
+  first_name: string
+  last_name: string
+  email: string
+  customer_code: string | null
+  card_code: string | null
+}
+
+// Dynamic import for server-side Supabase functions to avoid build-time issues
+async function getSupabaseFunctions() {
+  const module = await import("@/lib/supabase-server")
+  return {
+    getUserByWallet: module.getUserByWallet,
+    updateUserCardCode: module.updateUserCardCode,
+    createCardOrder: module.createCardOrder
+  }
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -28,7 +48,8 @@ export async function POST(req: NextRequest) {
     await updateUser({ card_code: cardCode })
 
     // Server-side operations still use service role
-    const user = await getUserByWallet(walletAddress)
+    const { getUserByWallet, createCardOrder } = await getSupabaseFunctions()
+    const user = await getUserByWallet(walletAddress) as User | null
     if (user) {
       await createCardOrder(user.id, customerCode, "")
     }
