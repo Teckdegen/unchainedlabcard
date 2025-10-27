@@ -3,7 +3,7 @@
 import { useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { getCurrentUser } from "@/lib/db"
-import { Card } from "@/components/ui/Card"
+import { Card } from "@/components/ui/card"
 
 export default function Pending() {
   const router = useRouter()

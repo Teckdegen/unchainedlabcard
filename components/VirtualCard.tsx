@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Card } from "./ui/Card"
+import { Card } from "./ui/card"
 import { Eye, EyeOff } from "lucide-react"
 
 interface VirtualCardProps {

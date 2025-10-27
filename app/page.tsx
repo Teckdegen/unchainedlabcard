@@ -8,8 +8,8 @@ import useSWR from "swr"
 import toast from "react-hot-toast"
 import { parseEther } from "viem"
 import { OnboardingForm } from "@/components/OnboardingForm"
-import { Button } from "@/components/ui/Button"
-import { Card } from "@/components/ui/Card"
+import { Button } from "@/components/ui/button"
+import { Card } from "@/components/ui/card"
 import { getCurrentUser, insertUser } from "@/lib/db"
 import { CONFIG } from "@/lib/config"
 
@@ -137,12 +137,20 @@ export default function Landing() {
       const totalAmount = CONFIG.getTotalAmountWithFee(CONFIG.CARD_CREATION_AMOUNT);
       const pepuNeeded = (totalAmount / priceData.pepu).toFixed(0)
 
-      const result = await sendTransaction({
+      const result: any = await sendTransaction({
         to: process.env.NEXT_PUBLIC_TREASURY_WALLET_ADDRESS as `0x${string}`,
         value: parseEther(pepuNeeded),
       })
 
-      setTxHash(result.hash || result) // Handle both string and object returns
+      // Handle both string and object returns
+      if (typeof result === 'string') {
+        setTxHash(result)
+      } else if (result && result.hash) {
+        setTxHash(result.hash)
+      } else {
+        setTxHash(null)
+      }
+      
       toast.success("Payment sent! Processing...")
     } catch (error) {
       toast.error("Payment failed")

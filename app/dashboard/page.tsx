@@ -7,8 +7,8 @@ import useSWR from "swr"
 import toast from "react-hot-toast"
 import { parseEther } from "viem"
 import { getCurrentUser } from "@/lib/db"
-import { Button } from "@/components/ui/Button"
-import { Card } from "@/components/ui/Card"
+import { Button } from "@/components/ui/button"
+import { Card } from "@/components/ui/card"
 import { Input } from "@/components/Input"
 import { BalanceCard } from "@/components/BalanceCard"
 import { VirtualCard } from "@/components/VirtualCard"
@@ -140,12 +140,20 @@ export default function Dashboard() {
       const totalAmount = CONFIG.getTotalAmountWithFee(amount);
       const pepuNeeded = (totalAmount / priceData.pepu).toFixed(0)
 
-      const result = await sendTransaction({
+      const result: any = await sendTransaction({
         to: process.env.NEXT_PUBLIC_TREASURY_WALLET_ADDRESS as `0x${string}`,
         value: parseEther(pepuNeeded),
       })
 
-      setTxHash(result.hash || result) // Handle both string and object returns
+      // Handle both string and object returns
+      if (typeof result === 'string') {
+        setTxHash(result)
+      } else if (result && result.hash) {
+        setTxHash(result.hash)
+      } else {
+        setTxHash(null)
+      }
+      
       toast.success("Top-up payment sent!")
     } catch (error) {
       toast.error("Top-up failed")

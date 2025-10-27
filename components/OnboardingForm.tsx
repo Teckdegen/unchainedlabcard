@@ -3,9 +3,9 @@
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { Input } from "./ui/Input"
-import { Button } from "./ui/Button"
-import { Card } from "./ui/Card"
+import { Input } from "./ui/input"
+import { Button } from "./ui/button"
+import { Card } from "./ui/card"
 
 const schema = z.object({
   first_name: z.string().min(1, "First name required"),
