@@ -159,19 +159,6 @@ export default function Landing() {
     }
   }
 
-  // Test if Tailwind is working
-  if (process.env.NODE_ENV === 'development') {
-    return (
-      <div className="min-h-screen bg-red-500 flex items-center justify-center">
-        <div className="bg-white p-8 rounded-lg shadow-lg">
-          <h1 className="text-3xl font-bold text-blue-600 mb-4">Tailwind CSS Test</h1>
-          <p className="text-gray-800 mb-4">If you see this styled correctly, Tailwind is working.</p>
-          <div className="w-16 h-16 bg-green-500 rounded-full"></div>
-        </div>
-      </div>
-    );
-  }
-
   if (!address) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center p-4 relative overflow-hidden">
@@ -220,12 +207,6 @@ export default function Landing() {
           src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-4aEHQZGC4QdzllME4riED3sDGlz7cN.png"
           alt="Background"
           className="w-full h-full object-cover"
-          onError={(e) => {
-            console.error("Background image failed to load:", e);
-            // Fallback background color
-            e.currentTarget.style.display = 'none';
-            e.currentTarget.parentElement!.style.backgroundColor = '#000';
-          }}
         />
       </div>
 
