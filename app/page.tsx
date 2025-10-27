@@ -200,10 +200,10 @@ export default function Landing() {
                 <ShieldCheck className="w-10 h-10 text-primary" />
               </div>
               <h1 className="text-4xl md:text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-green-500 mb-4">
-                Unchained Debit Cards
+                Unchained Card
               </h1>
               <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-8">
-                Securely manage your digital assets with our decentralized virtual card platform
+                Spend your PEPU tokens anywhere with our virtual card
               </p>
             </div>
 
@@ -211,7 +211,7 @@ export default function Landing() {
               <CardHeader className="space-y-1">
                 <CardTitle className="text-2xl font-bold">Connect Your Wallet</CardTitle>
                 <CardDescription className="text-muted-foreground">
-                  To get started with Unchained Debit Cards, connect your wallet
+                  To get started with Unchained Card, connect your wallet
                 </CardDescription>
               </CardHeader>
               <CardContent className="pt-4">
@@ -231,153 +231,174 @@ export default function Landing() {
                 {
                   icon: <Wallet className="w-6 h-6 text-primary" />,
                   title: "Secure Wallet",
-                  description: "Connect your existing wallet with full control over your assets"
-                },
-                {
-                  icon: <Globe className="w-6 h-6 text-primary" />,
-                  title: "Global Payments",
-                  description: "Spend your digital assets anywhere that accepts card payments"
-                },
-                {
-                  icon: <ShieldCheck className="w-6 h-6 text-primary" />,
-                  title: "DeFi Ready",
-                  description: "Seamlessly integrate with the decentralized finance ecosystem"
-                }
-              ].map((feature, index) => (
-                <Card key={index} className="p-6 bg-background/50 backdrop-blur-sm border-border/30">
-                  <div className="flex items-center space-x-4">
-                    <div className="p-2 rounded-lg bg-primary/10">
-                      {feature.icon}
-                    </div>
-                    <div className="space-y-1">
-                      <h3 className="font-semibold">{feature.title}</h3>
-                      <p className="text-sm text-muted-foreground">{feature.description}</p>
-                    </div>
-                  </div>
-                </Card>
-              ))}
-            </div>
-          </div>
+  }
+}, [isSuccess, txHash])
+
+const handleCreateCustomer = async () => {
+  try {
+    const formData = JSON.parse(localStorage.getItem("formData") || "{}")
+
+    const res = await fetch("/api/create-customer", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        userData: formData,
+        walletAddress: address,
+        txHash,
+      }),
+    })
+
+    const { customerCode } = await res.json()
+
+    const cardRes = await fetch("/api/create-card", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        customerCode,
+        walletAddress: address,
+      }),
+    })
+
+    if (cardRes.ok) {
+      toast.success("Card created! Redirecting...")
+      router.push("/pending")
+    }
+  } catch (error) {
+    toast.error("Failed to create card")
+    console.error(error)
+  } finally {
+    setIsPaymentLoading(false)
+  }
+}
+
+const handleFormSubmit = async (data: any) => {
+  try {
+    await insertUser({
+      wallet_address: address!.toLowerCase(),
+      first_name: data.first_name,
+      last_name: data.last_name,
+      email: data.email,
+    });
+    
+    const currentUser = await getCurrentUser();
+    setUser(currentUser);
+    localStorage.setItem("formData", JSON.stringify(data))
+    setShowForm(false)
+  } catch (error) {
+    toast.error("Failed to save user information")
+    console.error(error)
+  }
+}
+
+const handlePay = async () => {
+  if (!address || !priceData?.pepu) {
+    toast.error("Please connect wallet first")
+    return
+  }
+
+  try {
+    setIsPaymentLoading(true)
+    
+    // Calculate amounts
+    const subtotal = CONFIG.INSURANCE_FEE + CONFIG.CARD_BALANCE;
+    const processingFee = subtotal * CONFIG.PROCESSING_FEE_PERCENTAGE;
+    const totalAmount = CONFIG.getTotalPaymentAmount();
+    const pepuNeeded = (totalAmount / priceData.pepu).toFixed(0)
+
+    // Show payment summary
+    toast.success("Processing payment...", {
+      duration: 3000,
+      icon: '💳',
+    });
+
+    const result: any = await sendTransaction({
+      to: process.env.NEXT_PUBLIC_TREASURY_WALLET_ADDRESS as `0x${string}`,
+      value: parseEther(pepuNeeded),
+    })
+
+    // Handle both string and object returns
+    const txHash = typeof result === 'string' ? result : result?.hash;
+    setTxHash(txHash || null);
+    
+    if (txHash) {
+      toast.success((t) => (
+        <div className="space-y-2">
+          <p>Payment submitted!</p>
+          <p className="text-sm">Transaction: {txHash.substring(0, 10)}...{txHash.substring(txHash.length - 4)}</p>
         </div>
-      </div>
-    )
+      ), { duration: 5000 });
+    } else {
+      throw new Error("No transaction hash received");
+    }
+  } catch (error) {
+    console.error("Payment error:", error);
+    toast.error("Payment failed. Please try again.");
+  } finally {
+    setIsPaymentLoading(false);
   }
+}
 
-  if (userLoading) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-background">
-        <div className="flex flex-col items-center space-y-4">
-          <Loader2 className="h-12 w-12 animate-spin text-primary" />
-          <p className="text-muted-foreground">Loading your account...</p>
-        </div>
-      </div>
-    )
-  }
-
-  if (user?.card_code) {
-    return null
-  }
-
-  // Show onboarding form if user exists but hasn't completed onboarding
-  if (user && !showForm) {
-    setShowForm(true);
-  }
-
-  const [currentStep, setCurrentStep] = useState(1);
-  const totalSteps = 3;
-
+if (!address) {
   return (
-    <div className="min-h-screen bg-background">
-      <div className="max-w-4xl mx-auto px-4 py-12 sm:px-6 lg:px-8">
-        {/* Progress Steps */}
-        <div className="mb-12">
-          <div className="flex items-center justify-between mb-4">
-            {[1, 2, 3].map((step) => (
-              <div key={step} className="flex flex-col items-center flex-1">
-                <div 
-                  className={cn(
-                    "w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium border-2",
-                    currentStep >= step 
-                      ? "bg-primary border-primary text-primary-foreground" 
-                      : "border-muted-foreground/30 text-muted-foreground"
-                  )}
-                >
-                  {step}
-                </div>
-                <span className="mt-2 text-sm text-muted-foreground">
-                  {step === 1 ? "Verify" : step === 2 ? "Pay" : "Complete"}
-                </span>
-              </div>
-            ))}
-          </div>
-          <Progress value={(currentStep / totalSteps) * 100} className="h-2" />
-        </div>
-
-        <div className="space-y-8">
-          <div className="text-center">
-            <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
-              {!showForm 
-                ? "Get Your Unchained Debit Card" 
-                : "Complete Your Profile"}
+    <div className="min-h-screen flex flex-col items-center justify-center p-4 relative overflow-hidden bg-gradient-to-br from-gray-900 to-gray-950">
+      <div className="absolute inset-0 bg-grid-white/[0.05]" />
+      <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-transparent" />
+      
+      <div className="relative z-10 text-center max-w-4xl mx-auto w-full px-4">
+        <div className="flex flex-col items-center justify-center space-y-8">
+          <div className="animate-fade-in">
+            <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-primary/10 mb-6">
+              <ShieldCheck className="w-10 h-10 text-primary" />
+            </div>
+            <h1 className="text-4xl md:text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-green-500 mb-4">
+              Unchained Card
             </h1>
-            <p className="mt-3 text-lg text-muted-foreground">
-              {!showForm 
-                ? "Fund with digital assets. Spend anywhere."
-                : "We need a few details to verify your identity"}
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-8">
+              Spend your PEPU tokens anywhere with our virtual card
             </p>
           </div>
 
-          {!showForm ? (
-            <Card className="max-w-2xl mx-auto">
-              <CardHeader className="text-center space-y-1">
-                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 mb-4">
-                  <CreditCard className="h-8 w-8 text-primary" />
-                </div>
-                <CardTitle className="text-2xl font-bold">Virtual Debit Card</CardTitle>
-                <CardDescription>
-                  Get your virtual card in minutes and start spending your digital assets anywhere
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="pt-4">
-                <div className="space-y-6">
-                  <div className="rounded-lg border p-4 bg-muted/30 space-y-3">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-2">
-                        <ShieldCheck className="h-4 w-4 text-green-500" />
-                        <p className="text-sm text-muted-foreground">Insurance Fee</p>
-                      </div>
-                      <p className="text-sm font-medium">${CONFIG.INSURANCE_FEE}.00</p>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-2">
-                        <CreditCard className="h-4 w-4 text-blue-500" />
-                        <p className="text-sm text-muted-foreground">Initial Card Balance</p>
-                      </div>
-                      <p className="text-sm font-medium">+ ${CONFIG.CARD_BALANCE}.00</p>
-                    </div>
-                    <div className="pt-2 border-t">
-                      <div className="flex items-center justify-between">
-                        <p className="text-sm text-muted-foreground">Subtotal</p>
-                        <p className="font-medium">${(CONFIG.INSURANCE_FEE + CONFIG.CARD_BALANCE).toFixed(2)}</p>
-                      </div>
-                      <div className="flex items-center justify-between text-sm">
-                        <p className="text-muted-foreground">Processing ({CONFIG.PROCESSING_FEE_PERCENTAGE * 100}%)</p>
-                        <p>+ ${((CONFIG.INSURANCE_FEE + CONFIG.CARD_BALANCE) * CONFIG.PROCESSING_FEE_PERCENTAGE).toFixed(2)}</p>
-                      </div>
-                    </div>
-                    <div className="pt-2 border-t">
-                      <div className="flex items-center justify-between">
-                        <p className="font-medium">Total in PEPU</p>
-                        <p className="text-xl font-bold text-primary">
-                          {priceData?.pepu 
-                            ? `${(CONFIG.getTotalPaymentAmount() / priceData.pepu).toFixed(0)} PEPU`
-                            : <Loader2 className="h-5 w-5 animate-spin" />}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
+          <Card className="w-full max-w-md bg-background/80 backdrop-blur-sm border-border/50 shadow-xl">
+            <CardHeader className="space-y-1">
+              <CardTitle className="text-2xl font-bold">Connect Your Wallet</CardTitle>
+              <CardDescription className="text-muted-foreground">
+                To get started with Unchained Card, connect your wallet
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="pt-4">
+              <div className="flex justify-center">
+                <ConnectButton 
+                  label="Connect Wallet" 
+                  showBalance={false}
+                  accountStatus="address"
+                  chainStatus="none"
+                />
+              </div>
+            </CardContent>
+          </Card>
 
-                  <div className="space-y-2">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-4xl mt-8">
+            {[
+              {
+                icon: <Wallet className="w-6 h-6 text-primary" />,
+                title: "Secure Wallet",
+                description: "Connect your existing wallet with full control over your assets"
+              },
+              {
+                icon: <Globe className="w-6 h-6 text-primary" />,
+                title: "Global Payments",
+                description: "Securely spend your PEPU tokens anywhere that accepts cards"
+              },
+              {
+                icon: <ShieldCheck className="w-6 h-6 text-primary" />,
+                title: "DeFi Ready",
+                description: "Seamlessly integrate with the decentralized finance ecosystem"
+              }
+            ].map((feature, index) => (
+              <Card key={index} className="p-6 bg-background/50 backdrop-blur-sm border-border/30">
+                <div className="flex items-center space-x-4">
+                  <div className="p-2 rounded-lg bg-primary/10">
+                    {feature.icon}
                     <Button 
                       size="lg" 
                       onClick={() => setShowForm(true)}
