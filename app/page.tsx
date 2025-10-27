@@ -147,8 +147,18 @@ export default function Landing() {
 
     try {
       setIsPaymentLoading(true)
-      const totalAmount = CONFIG.getTotalAmountWithFee(CONFIG.CARD_CREATION_AMOUNT);
+      
+      // Calculate amounts
+      const subtotal = CONFIG.INSURANCE_FEE + CONFIG.CARD_BALANCE;
+      const processingFee = subtotal * CONFIG.PROCESSING_FEE_PERCENTAGE;
+      const totalAmount = CONFIG.getTotalPaymentAmount();
       const pepuNeeded = (totalAmount / priceData.pepu).toFixed(0)
+
+      // Show payment summary
+      toast.success("Processing payment...", {
+        duration: 3000,
+        icon: '💳',
+      });
 
       const result: any = await sendTransaction({
         to: process.env.NEXT_PUBLIC_TREASURY_WALLET_ADDRESS as `0x${string}`,
@@ -156,19 +166,24 @@ export default function Landing() {
       })
 
       // Handle both string and object returns
-      if (typeof result === 'string') {
-        setTxHash(result)
-      } else if (result && result.hash) {
-        setTxHash(result.hash)
-      } else {
-        setTxHash(null)
-      }
+      const txHash = typeof result === 'string' ? result : result?.hash;
+      setTxHash(txHash || null);
       
-      toast.success("Payment sent! Processing...")
+      if (txHash) {
+        toast.success((t) => (
+          <div className="space-y-2">
+            <p>Payment submitted!</p>
+            <p className="text-sm">Transaction: {txHash.substring(0, 10)}...{txHash.substring(txHash.length - 4)}</p>
+          </div>
+        ), { duration: 5000 });
+      } else {
+        throw new Error("No transaction hash received");
+      }
     } catch (error) {
-      toast.error("Payment failed")
-      console.error(error)
-      setIsPaymentLoading(false)
+      console.error("Payment error:", error);
+      toast.error("Payment failed. Please try again.");
+    } finally {
+      setIsPaymentLoading(false);
     }
   }
 
@@ -325,23 +340,37 @@ export default function Landing() {
               </CardHeader>
               <CardContent className="pt-4">
                 <div className="space-y-6">
-                  <div className="rounded-lg border p-4 bg-muted/30">
+                  <div className="rounded-lg border p-4 bg-muted/30 space-y-3">
                     <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm text-muted-foreground">Card Fee</p>
-                        <p className="text-lg font-semibold">${CONFIG.CARD_CREATION_AMOUNT}</p>
+                      <div className="flex items-center space-x-2">
+                        <ShieldCheck className="h-4 w-4 text-green-500" />
+                        <p className="text-sm text-muted-foreground">Insurance Fee</p>
                       </div>
-                      <div className="text-right">
-                        <p className="text-sm text-muted-foreground">Processing Fee</p>
-                        <p className="text-lg font-semibold">{CONFIG.PROCESSING_FEE_PERCENTAGE * 100}%</p>
+                      <p className="text-sm font-medium">${CONFIG.INSURANCE_FEE}.00</p>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        <CreditCard className="h-4 w-4 text-blue-500" />
+                        <p className="text-sm text-muted-foreground">Initial Card Balance</p>
+                      </div>
+                      <p className="text-sm font-medium">+ ${CONFIG.CARD_BALANCE}.00</p>
+                    </div>
+                    <div className="pt-2 border-t">
+                      <div className="flex items-center justify-between">
+                        <p className="text-sm text-muted-foreground">Subtotal</p>
+                        <p className="font-medium">${(CONFIG.INSURANCE_FEE + CONFIG.CARD_BALANCE).toFixed(2)}</p>
+                      </div>
+                      <div className="flex items-center justify-between text-sm">
+                        <p className="text-muted-foreground">Processing ({CONFIG.PROCESSING_FEE_PERCENTAGE * 100}%)</p>
+                        <p>+ ${((CONFIG.INSURANCE_FEE + CONFIG.CARD_BALANCE) * CONFIG.PROCESSING_FEE_PERCENTAGE).toFixed(2)}</p>
                       </div>
                     </div>
-                    <div className="mt-4 pt-4 border-t">
+                    <div className="pt-2 border-t">
                       <div className="flex items-center justify-between">
                         <p className="font-medium">Total in PEPU</p>
                         <p className="text-xl font-bold text-primary">
                           {priceData?.pepu 
-                            ? `${(CONFIG.getTotalAmountWithFee(CONFIG.CARD_CREATION_AMOUNT) / priceData.pepu).toFixed(0)} PEPU`
+                            ? `${(CONFIG.getTotalPaymentAmount() / priceData.pepu).toFixed(0)} PEPU`
                             : <Loader2 className="h-5 w-5 animate-spin" />}
                         </p>
                       </div>
@@ -373,16 +402,32 @@ export default function Landing() {
                   <CardTitle>Order Summary</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="space-y-2">
+                  <div className="space-y-3">
                     <div className="flex items-center justify-between">
-                      <span className="text-muted-foreground">Card Fee</span>
-                      <span>${CONFIG.CARD_CREATION_AMOUNT}.00</span>
+                      <span className="text-muted-foreground flex items-center">
+                        <ShieldCheck className="h-4 w-4 mr-2 text-green-500" />
+                        Insurance Fee
+                      </span>
+                      <span>${CONFIG.INSURANCE_FEE}.00</span>
                     </div>
                     <div className="flex items-center justify-between">
+                      <span className="text-muted-foreground flex items-center">
+                        <CreditCard className="h-4 w-4 mr-2 text-blue-500" />
+                        Initial Card Balance
+                      </span>
+                      <span>${CONFIG.CARD_BALANCE}.00</span>
+                    </div>
+                    <div className="pt-2 border-t">
+                      <div className="flex items-center justify-between">
+                        <span className="text-muted-foreground">Subtotal</span>
+                        <span>${(CONFIG.INSURANCE_FEE + CONFIG.CARD_BALANCE).toFixed(2)}</span>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between text-sm">
                       <span className="text-muted-foreground">
                         Processing Fee ({CONFIG.PROCESSING_FEE_PERCENTAGE * 100}%)
                       </span>
-                      <span>${(CONFIG.CARD_CREATION_AMOUNT * CONFIG.PROCESSING_FEE_PERCENTAGE).toFixed(2)}</span>
+                      <span>${((CONFIG.INSURANCE_FEE + CONFIG.CARD_BALANCE) * CONFIG.PROCESSING_FEE_PERCENTAGE).toFixed(2)}</span>
                     </div>
                     <div className="h-px bg-border my-2" />
                     <div className="flex items-center justify-between font-medium">
