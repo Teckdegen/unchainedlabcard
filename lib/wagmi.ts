@@ -21,6 +21,8 @@ export const wagmiConfig = createConfig({
   transports: {
     [pepuChain.id]: http(process.env.NEXT_PUBLIC_PEPU_RPC_URL),
   },
+  // Disable storage on server-side to prevent functions from being passed to Client Components
+  storage: typeof window !== 'undefined' ? undefined : null,
 })
 
 export { pepuChain }
