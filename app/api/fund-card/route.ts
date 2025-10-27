@@ -1,7 +1,14 @@
 import { cashwryePost } from "@/lib/cashwrye"
-import { getUserByWallet } from "@/lib/supabase-server"
 import { getCurrentUser } from "@/lib/db"
 import { sendTG } from "@/lib/telegram"
+
+// Dynamic import for server-side Supabase functions to avoid build-time issues
+async function getSupabaseFunctions() {
+  const module = await import("@/lib/supabase-server")
+  return {
+    getUserByWallet: module.getUserByWallet
+  }
+}
 
 export async function POST(req: any) {
   try {
@@ -13,6 +20,10 @@ export async function POST(req: any) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { 'Content-Type': 'application/json' } });
     }
 
+    // Server-side operations still use service role
+    const { getUserByWallet } = await getSupabaseFunctions()
+    const user = await getUserByWallet(walletAddress)
+    
     const result = await cashwryePost("/card/fund", {
       cardCode,
       amount: amountInUSD,
