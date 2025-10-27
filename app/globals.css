@@ -1,0 +1,85 @@
+/* Fixed Tailwind CSS v3 directives instead of v4 syntax */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Import RainbowKit styles via CSS instead of JS to avoid MIME type errors */
+@import "@rainbow-me/rainbowkit/styles.css";
+
+@layer base {
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply font-sans bg-black text-white min-h-screen;
+  }
+}
+
+@layer components {
+  .glassmorphism {
+    @apply bg-white/10 backdrop-blur-lg border border-white/20;
+  }
+
+  .card-gradient {
+    @apply bg-gradient-to-br from-gray-900 to-black;
+  }
+
+  .gold-text {
+    @apply text-green-400;
+  }
+
+  .beige-bg {
+    @apply bg-black;
+  }
+}
+
+@layer utilities {
+  @keyframes pulse-slow {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.5;
+    }
+  }
+
+  @keyframes float {
+    0%,
+    100% {
+      transform: translateY(0px);
+    }
+    50% {
+      transform: translateY(-10px);
+    }
+  }
+
+  @keyframes bounce-custom {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-10px);
+    }
+  }
+
+  .animate-pulse-slow {
+    animation: pulse-slow 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
+  }
+
+  .animate-bounce-custom {
+    animation: bounce-custom 1s infinite;
+  }
+}
