@@ -48,40 +48,29 @@ export default function Landing() {
 
   useEffect(() => {
     if (!address) return;
-    (async () => {
-      setUserLoading(true)
+    
+    const fetchUser = async () => {
       try {
-        // Call wallet sign-in API
-        await fetch('/api/auth/wallet-signin', {
-          method: 'POST',
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ 
-            wallet_address: address, 
-            signature: 'temp', 
-            message: 'temp' 
-          }),
-        });
-        
-        // Get current user (RLS-safe)
-        const currentUser = await getCurrentUser();
-        setUser(currentUser);
-        
-        if (currentUser?.card_code) {
-          router.push('/dashboard');
+        const userData = await getCurrentUser();
+        setUser(userData);
+        if (userData) {
+          setShowForm(false);
         }
       } catch (error) {
-        console.error('Error during sign-in:', error);
+        console.error("Error fetching user:", error);
       } finally {
         setUserLoading(false);
       }
-    })();
+    };
+
+    fetchUser();
   }, [address]);
 
   useEffect(() => {
     if (isSuccess && txHash) {
-      handleCreateCustomer()
+      handleCreateCustomer();
     }
-  }, [isSuccess, txHash])
+  }, [isSuccess, txHash]);
 
   const handleCreateCustomer = async () => {
     try {
@@ -231,268 +220,251 @@ export default function Landing() {
                 {
                   icon: <Wallet className="w-6 h-6 text-primary" />,
                   title: "Secure Wallet",
-  }
-}, [isSuccess, txHash])
-
-const handleCreateCustomer = async () => {
-  try {
-    const formData = JSON.parse(localStorage.getItem("formData") || "{}")
-
-    const res = await fetch("/api/create-customer", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        userData: formData,
-        walletAddress: address,
-        txHash,
-      }),
-    })
-
-    const { customerCode } = await res.json()
-
-    const cardRes = await fetch("/api/create-card", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        customerCode,
-        walletAddress: address,
-      }),
-    })
-
-    if (cardRes.ok) {
-      toast.success("Card created! Redirecting...")
-      router.push("/pending")
-    }
-  } catch (error) {
-    toast.error("Failed to create card")
-    console.error(error)
-  } finally {
-    setIsPaymentLoading(false)
-  }
-}
-
-const handleFormSubmit = async (data: any) => {
-  try {
-    await insertUser({
-      wallet_address: address!.toLowerCase(),
-      first_name: data.first_name,
-      last_name: data.last_name,
-      email: data.email,
-    });
-    
-    const currentUser = await getCurrentUser();
-    setUser(currentUser);
-    localStorage.setItem("formData", JSON.stringify(data))
-    setShowForm(false)
-  } catch (error) {
-    toast.error("Failed to save user information")
-    console.error(error)
-  }
-}
-
-const handlePay = async () => {
-  if (!address || !priceData?.pepu) {
-    toast.error("Please connect wallet first")
-    return
-  }
-
-  try {
-    setIsPaymentLoading(true)
-    
-    // Calculate amounts
-    const subtotal = CONFIG.INSURANCE_FEE + CONFIG.CARD_BALANCE;
-    const processingFee = subtotal * CONFIG.PROCESSING_FEE_PERCENTAGE;
-    const totalAmount = CONFIG.getTotalPaymentAmount();
-    const pepuNeeded = (totalAmount / priceData.pepu).toFixed(0)
-
-    // Show payment summary
-    toast.success("Processing payment...", {
-      duration: 3000,
-      icon: '💳',
-    });
-
-    const result: any = await sendTransaction({
-      to: process.env.NEXT_PUBLIC_TREASURY_WALLET_ADDRESS as `0x${string}`,
-      value: parseEther(pepuNeeded),
-    })
-
-    // Handle both string and object returns
-    const txHash = typeof result === 'string' ? result : result?.hash;
-    setTxHash(txHash || null);
-    
-    if (txHash) {
-      toast.success((t) => (
-        <div className="space-y-2">
-          <p>Payment submitted!</p>
-          <p className="text-sm">Transaction: {txHash.substring(0, 10)}...{txHash.substring(txHash.length - 4)}</p>
+                  description: "Connect your existing wallet with full control over your assets"
+                },
+                {
+                  icon: <Globe className="w-6 h-6 text-primary" />,
+                  title: "Global Payments",
+                  description: "Securely spend your PEPU tokens anywhere that accepts cards"
+                },
+                {
+                  icon: <ShieldCheck className="w-6 h-6 text-primary" />,
+                  title: "DeFi Ready",
+                  description: "Seamlessly integrate with the decentralized finance ecosystem"
+                }
+              ].map((feature, index) => (
+                <Card key={index} className="p-6 bg-background/50 backdrop-blur-sm border-border/30">
+                  <div className="flex items-center space-x-4">
+                    <div className="p-2 rounded-lg bg-primary/10">
+                      {feature.icon}
+                    </div>
+                    <div className="space-y-1">
+                      <h3 className="font-medium">{feature.title}</h3>
+                      <p className="text-sm text-muted-foreground">{feature.description}</p>
+                    </div>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          </div>
         </div>
-      ), { duration: 5000 });
-    } else {
-      throw new Error("No transaction hash received");
-    }
-  } catch (error) {
-    console.error("Payment error:", error);
-    toast.error("Payment failed. Please try again.");
-  } finally {
-    setIsPaymentLoading(false);
+      </div>
+    );
   }
-}
 
-if (!address) {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-4 relative overflow-hidden bg-gradient-to-br from-gray-900 to-gray-950">
       <div className="absolute inset-0 bg-grid-white/[0.05]" />
       <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-transparent" />
       
-      <div className="relative z-10 text-center max-w-4xl mx-auto w-full px-4">
-        <div className="flex flex-col items-center justify-center space-y-8">
-          <div className="animate-fade-in">
-            <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-primary/10 mb-6">
-              <ShieldCheck className="w-10 h-10 text-primary" />
-            </div>
-            <h1 className="text-4xl md:text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-green-500 mb-4">
-              Unchained Card
-            </h1>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-8">
-              Spend your PEPU tokens anywhere with our virtual card
-            </p>
+      <div className="relative z-10 w-full max-w-4xl mx-auto px-4">
+        <div className="text-center mb-12">
+          <h1 className="text-4xl md:text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-green-500 mb-4">
+            Get Your PEPU Virtual Card
+          </h1>
+          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+            Securely spend your PEPU tokens anywhere that accepts cards
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Left Column - Form */}
+          <div className="space-y-6">
+            {!showForm ? (
+              <Card className="bg-background/80 backdrop-blur-sm border-border/50">
+                <CardHeader>
+                  <CardTitle className="text-2xl">Card Details</CardTitle>
+                  <CardDescription>
+                    Fill in your details to get your virtual card
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Button 
+                    onClick={() => setShowForm(true)}
+                    className="w-full"
+                    size="lg"
+                  >
+                    Continue to Payment
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+                </CardContent>
+              </Card>
+            ) : (
+              <OnboardingForm onSubmit={handleFormSubmit} />
+            )}
+
+            {/* Order Summary */}
+            <Card className="bg-background/80 backdrop-blur-sm border-border/50">
+              <CardHeader>
+                <CardTitle>Order Summary</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground flex items-center">
+                    <ShieldCheck className="h-4 w-4 mr-2 text-green-500" />
+                    Insurance Fee
+                  </span>
+                  <span>${CONFIG.INSURANCE_FEE}.00</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground flex items-center">
+                    <CreditCard className="h-4 w-4 mr-2 text-blue-500" />
+                    Initial Card Balance
+                  </span>
+                  <span>${CONFIG.CARD_BALANCE}.00</span>
+                </div>
+                <div className="pt-2 border-t">
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted-foreground">Subtotal</span>
+                    <span>${(CONFIG.INSURANCE_FEE + CONFIG.CARD_BALANCE).toFixed(2)}</span>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">
+                    Processing Fee (5%)
+                  </span>
+                  <span>${((CONFIG.INSURANCE_FEE + CONFIG.CARD_BALANCE) * 0.05).toFixed(2)}</span>
+                </div>
+                <div className="h-px bg-border my-2" />
+                <div className="flex items-center justify-between font-medium">
+                  <span>Total</span>
+                  <div className="text-right">
+                    <p className="text-lg">${CONFIG.getTotalPaymentAmount().toFixed(2)}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {priceData?.pepu
+                        ? `${(CONFIG.getTotalPaymentAmount() / priceData.pepu).toFixed(0)} PEPU`
+                        : ""}
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+              <CardFooter className="flex flex-col space-y-2">
+                <Button 
+                  onClick={handlePay}
+                  disabled={isPaymentLoading || !user}
+                  className="w-full"
+                  size="lg"
+                >
+                  {isPaymentLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Processing...
+                    </>
+                  ) : (
+                    `Pay ${priceData?.pepu ? (CONFIG.getTotalPaymentAmount() / priceData.pepu).toFixed(0) : ''} PEPU`
+                  )}
+                </Button>
+                <p className="text-xs text-muted-foreground text-center">
+                  By continuing, you agree to our Terms of Service and Privacy Policy
+                </p>
+              </CardFooter>
+            </Card>
           </div>
 
-          <Card className="w-full max-w-md bg-background/80 backdrop-blur-sm border-border/50 shadow-xl">
-            <CardHeader className="space-y-1">
-              <CardTitle className="text-2xl font-bold">Connect Your Wallet</CardTitle>
-              <CardDescription className="text-muted-foreground">
-                To get started with Unchained Card, connect your wallet
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="pt-4">
-              <div className="flex justify-center">
-                <ConnectButton 
-                  label="Connect Wallet" 
-                  showBalance={false}
-                  accountStatus="address"
-                  chainStatus="none"
-                />
+          {/* Right Column - Card Preview */}
+          <div className="space-y-6">
+            <Card className="bg-gradient-to-br from-primary/10 to-primary/5 border-border/50 p-6 h-64 flex flex-col justify-between">
+              <div className="flex justify-between items-start">
+                <div>
+                  <p className="text-sm text-muted-foreground">Balance</p>
+                  <p className="text-2xl font-bold">
+                    ${CONFIG.CARD_BALANCE.toFixed(2)}
+                  </p>
+                </div>
+                <div className="text-right">
+                  <p className="text-sm text-muted-foreground">PEPU</p>
+                  <p className="text-2xl font-bold">
+                    {priceData?.pepu
+                      ? (CONFIG.CARD_BALANCE / priceData.pepu).toFixed(2)
+                      : "0.00"}
+                  </p>
+                </div>
               </div>
-            </CardContent>
-          </Card>
+              <div className="mt-8">
+                <p className="text-sm text-muted-foreground mb-2">Card Number</p>
+                <div className="flex items-center space-x-2">
+                  <div className="h-8 w-12 rounded-md bg-background/50 flex items-center justify-center">
+                    <CreditCard className="h-4 w-4 text-muted-foreground" />
+                  </div>
+                  <div className="tracking-widest">•••• •••• •••• ••••</div>
+                </div>
+              </div>
+              <div className="flex justify-between mt-6">
+                <div>
+                  <p className="text-xs text-muted-foreground">Card Holder</p>
+                  <p className="text-sm font-medium">
+                    {user ? `${user.first_name} ${user.last_name}`.toUpperCase() : 'YOUR NAME'}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Expires</p>
+                  <p className="text-sm font-medium">••/••</p>
+                </div>
+              </div>
+            </Card>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-4xl mt-8">
-            {[
-              {
-                icon: <Wallet className="w-6 h-6 text-primary" />,
-                title: "Secure Wallet",
-                description: "Connect your existing wallet with full control over your assets"
-              },
-              {
-                icon: <Globe className="w-6 h-6 text-primary" />,
-                title: "Global Payments",
-                description: "Securely spend your PEPU tokens anywhere that accepts cards"
-              },
-              {
-                icon: <ShieldCheck className="w-6 h-6 text-primary" />,
-                title: "DeFi Ready",
-                description: "Seamlessly integrate with the decentralized finance ecosystem"
-              }
-            ].map((feature, index) => (
-              <Card key={index} className="p-6 bg-background/50 backdrop-blur-sm border-border/30">
-                <div className="flex items-center space-x-4">
-                  <div className="p-2 rounded-lg bg-primary/10">
-                    {feature.icon}
-                    <Button 
-                      size="lg" 
-                      onClick={() => setShowForm(true)}
-                      className="w-full"
-                    >
-                      Continue
-                      <ArrowRight className="ml-2 h-4 w-4" />
-                    </Button>
-                    <p className="text-xs text-center text-muted-foreground">
-                      By continuing, you agree to our Terms of Service and Privacy Policy
+            {/* Card Summary */}
+            <Card className="bg-background/80 backdrop-blur-sm border-border/50">
+              <CardHeader>
+                <CardTitle>Card Summary</CardTitle>
+                <CardDescription>What's included with your card</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <ShieldCheck className="h-4 w-4 text-green-500" />
+                    <p className="text-sm text-muted-foreground">Insurance Fee</p>
+                  </div>
+                  <p className="text-sm font-medium">${CONFIG.INSURANCE_FEE}.00</p>
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <CreditCard className="h-4 w-4 text-blue-500" />
+                    <p className="text-sm text-muted-foreground">Initial Card Balance</p>
+                  </div>
+                  <p className="text-sm font-medium">+ ${CONFIG.CARD_BALANCE}.00</p>
+                </div>
+                <div className="pt-2 border-t">
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm text-muted-foreground">Subtotal</p>
+                    <p className="font-medium">${(CONFIG.INSURANCE_FEE + CONFIG.CARD_BALANCE).toFixed(2)}</p>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <p className="text-muted-foreground">Processing (5%)</p>
+                    <p>+ ${((CONFIG.INSURANCE_FEE + CONFIG.CARD_BALANCE) * 0.05).toFixed(2)}</p>
+                  </div>
+                </div>
+                <div className="pt-2 border-t">
+                  <div className="flex items-center justify-between">
+                    <p className="font-medium">Total in PEPU</p>
+                    <p className="text-xl font-bold text-primary">
+                      {priceData?.pepu
+                        ? `${(CONFIG.getTotalPaymentAmount() / priceData.pepu).toFixed(0)} PEPU`
+                        : <Loader2 className="h-5 w-5 animate-spin" />}
                     </p>
                   </div>
                 </div>
               </CardContent>
             </Card>
-          ) : (
-            <div className="space-y-6">
-              <OnboardingForm onSubmit={handleFormSubmit} />
 
-              <Card className="max-w-2xl mx-auto">
-                <CardHeader>
-                  <CardTitle>Order Summary</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <span className="text-muted-foreground flex items-center">
-                        <ShieldCheck className="h-4 w-4 mr-2 text-green-500" />
-                        Insurance Fee
-                      </span>
-                      <span>${CONFIG.INSURANCE_FEE}.00</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-muted-foreground flex items-center">
-                        <CreditCard className="h-4 w-4 mr-2 text-blue-500" />
-                        Initial Card Balance
-                      </span>
-                      <span>${CONFIG.CARD_BALANCE}.00</span>
-                    </div>
-                    <div className="pt-2 border-t">
-                      <div className="flex items-center justify-between">
-                        <span className="text-muted-foreground">Subtotal</span>
-                        <span>${(CONFIG.INSURANCE_FEE + CONFIG.CARD_BALANCE).toFixed(2)}</span>
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-muted-foreground">
-                        Processing Fee ({CONFIG.PROCESSING_FEE_PERCENTAGE * 100}%)
-                      </span>
-                      <span>${((CONFIG.INSURANCE_FEE + CONFIG.CARD_BALANCE) * CONFIG.PROCESSING_FEE_PERCENTAGE).toFixed(2)}</span>
-                    </div>
-                    <div className="h-px bg-border my-2" />
-                    <div className="flex items-center justify-between font-medium">
-                      <span>Total</span>
-                      <div className="text-right">
-                        <p className="text-lg">${CONFIG.getTotalAmountWithFee(CONFIG.CARD_CREATION_AMOUNT).toFixed(2)}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {priceData?.pepu 
-                            ? `${(CONFIG.getTotalAmountWithFee(CONFIG.CARD_CREATION_AMOUNT) / priceData.pepu).toFixed(0)} PEPU`
-                            : ""}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <Button 
-                    size="lg" 
-                    onClick={handlePay} 
-                    disabled={isPaymentLoading}
-                    className="w-full mt-4"
-                  >
-                    {isPaymentLoading ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Processing...
-                      </>
-                    ) : (
-                      <>
-                        Pay with Wallet
-                        <Wallet className="ml-2 h-4 w-4" />
-                      </>
-                    )}
-                  </Button>
-
-                  <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                    <ShieldCheck className="h-4 w-4 text-green-500" />
-                    <span>Secure payment processing</span>
-                  </div>
-                </CardContent>
-              </Card>
+            {/* Features */}
+            <div className="space-y-2">
+              <div className="flex items-center space-x-2">
+                <CheckCircle className="h-4 w-4 text-green-500" />
+                <span className="text-sm">Instant virtual card upon approval</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <CheckCircle className="h-4 w-4 text-green-500" />
+                <span className="text-sm">Spend PEPU anywhere cards are accepted</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <CheckCircle className="h-4 w-4 text-green-500" />
+                <span className="text-sm">No monthly or hidden fees</span>
+              </div>
             </div>
-          )}
+          </div>
         </div>
       </div>
     </div>
-  )
+  );
 }
