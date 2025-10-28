@@ -189,7 +189,14 @@ export default function Landing() {
 
   if (!address) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center p-4 relative overflow-hidden bg-gradient-to-br from-gray-900 to-gray-950">
+      <div className="min-h-screen flex flex-col items-center justify-center p-4 relative overflow-hidden">
+        <div 
+          className="absolute inset-0 bg-cover bg-center"
+          style={{ 
+            backgroundImage: "url('https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-4aEHQZGC4QdzllME4riED3sDGlz7cN.png')",
+            backgroundColor: "#000"
+          }}
+        />
         <div className="absolute inset-0 bg-grid-white/[0.05]" />
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-transparent" />
         
@@ -264,7 +271,14 @@ export default function Landing() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4 relative overflow-hidden bg-gradient-to-br from-gray-900 to-gray-950">
+    <div className="min-h-screen flex flex-col items-center justify-center p-4 relative overflow-hidden">
+      <div 
+        className="absolute inset-0 bg-cover bg-center"
+        style={{ 
+          backgroundImage: "url('https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-4aEHQZGC4QdzllME4riED3sDGlz7cN.png')",
+          backgroundColor: "#000"
+        }}
+      />
       <div className="absolute inset-0 bg-grid-white/[0.05]" />
       <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-transparent" />
       

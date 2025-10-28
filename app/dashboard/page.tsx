@@ -182,18 +182,13 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen p-4 md:p-8 relative overflow-hidden bg-background">
+    <div className="min-h-screen p-4 md:p-8 relative overflow-hidden">
       <div className="absolute inset-0">
-        <img
-          src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-4aEHQZGC4QdzllME4riED3sDGlz7cN.png"
-          alt="Background"
-          className="w-full h-full object-cover"
-          onError={(e) => {
-            console.error("Background image failed to load");
-            // Add a fallback background color
-            const target = e.target as HTMLImageElement;
-            target.style.display = 'none';
-            target.parentElement!.style.backgroundColor = 'hsl(var(--background))';
+        <div 
+          className="w-full h-full bg-cover bg-center"
+          style={{ 
+            backgroundImage: "url('https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-4aEHQZGC4QdzllME4riED3sDGlz7cN.png')",
+            backgroundColor: "#000"
           }}
         />
         <div className="absolute inset-0 bg-black/60"></div>

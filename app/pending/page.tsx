@@ -24,8 +24,16 @@ export default function Pending() {
   }, [router]);
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center min-h-screen bg-background">
-      <Card className="max-w-md text-center p-8 bg-card">
+    <div className="min-h-screen flex flex-col items-center justify-center min-h-screen relative">
+      <div 
+        className="absolute inset-0 bg-cover bg-center"
+        style={{ 
+          backgroundImage: "url('https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-4aEHQZGC4QdzllME4riED3sDGlz7cN.png')",
+          backgroundColor: "#000"
+        }}
+      />
+      
+      <Card className="max-w-md text-center p-8 bg-background/80 backdrop-blur-sm border-border/50 relative z-10">
         <div className="mb-6">
           <div className="flex justify-center space-x-2 mt-6">
             <div className="w-3 h-3 bg-amber-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>

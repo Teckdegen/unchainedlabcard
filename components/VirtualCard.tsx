@@ -26,20 +26,14 @@ export function VirtualCard({
   const [showCVV, setShowCVV] = useState(false)
 
   return (
-    <Card className="relative overflow-hidden h-64 flex flex-col justify-between bg-gradient-to-br from-gray-900 to-black">
-      <div className="absolute inset-0">
-        <img
-          src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-ax7SBeeNt2ao6E9dhH86Ivy51DaKms.png"
-          alt="Card background"
-          className="w-full h-full object-cover"
-          onError={(e) => {
-            // Fallback if image fails to load
-            const target = e.target as HTMLImageElement;
-            target.style.display = 'none';
-            target.parentElement!.style.background = 'linear-gradient(135deg, #1a1a1a 0%, #000000 100%)';
-          }}
-        />
-      </div>
+    <Card className="relative overflow-hidden h-64 flex flex-col justify-between">
+      <div 
+        className="absolute inset-0 bg-cover bg-center"
+        style={{ 
+          backgroundImage: "url('https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-ax7SBeeNt2ao6E9dhH86Ivy51DaKms.png')",
+          backgroundColor: "linear-gradient(135deg, #1a1a1a 0%, #000000 100%)"
+        }}
+      />
 
       <div className="relative z-10">
         <div className="flex justify-between items-start mb-8">
