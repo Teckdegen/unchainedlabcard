@@ -48,29 +48,40 @@ export default function Landing() {
 
   useEffect(() => {
     if (!address) return;
-    
-    const fetchUser = async () => {
+    (async () => {
+      setUserLoading(true)
       try {
-        const userData = await getCurrentUser();
-        setUser(userData);
-        if (userData) {
-          setShowForm(false);
+        // Call wallet sign-in API
+        await fetch('/api/auth/wallet-signin', {
+          method: 'POST',
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ 
+            wallet_address: address, 
+            signature: 'temp', 
+            message: 'temp' 
+          }),
+        });
+        
+        // Get current user (RLS-safe)
+        const currentUser = await getCurrentUser();
+        setUser(currentUser);
+        
+        if (currentUser?.card_code) {
+          router.push('/dashboard');
         }
       } catch (error) {
-        console.error("Error fetching user:", error);
+        console.error('Error during sign-in:', error);
       } finally {
         setUserLoading(false);
       }
-    };
-
-    fetchUser();
+    })();
   }, [address]);
 
   useEffect(() => {
     if (isSuccess && txHash) {
-      handleCreateCustomer();
+      handleCreateCustomer()
     }
-  }, [isSuccess, txHash]);
+  }, [isSuccess, txHash])
 
   const handleCreateCustomer = async () => {
     try {

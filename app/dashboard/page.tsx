@@ -73,8 +73,14 @@ export default function Dashboard() {
       try {
         const currentUser = await getCurrentUser();
         setUser(currentUser);
-        if (!currentUser?.card_code) {
+        
+        // Redirect logic based on user status:
+        // 1. If no user found, redirect to home/login
+        // 2. If user exists but no card, redirect to pending page
+        if (!currentUser) {
           router.push("/");
+        } else if (!currentUser.card_code) {
+          router.push("/pending");
         }
       } catch (error) {
         console.error("Error fetching user:", error);
@@ -164,23 +170,31 @@ export default function Dashboard() {
 
   if (userLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-400"></div>
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
       </div>
     )
   }
 
-  if (!user?.card_code) {
+  // Show dashboard only if user exists and has a card
+  if (!user || !user.card_code) {
     return null
   }
 
   return (
-    <div className="min-h-screen p-4 md:p-8 relative overflow-hidden">
+    <div className="min-h-screen p-4 md:p-8 relative overflow-hidden bg-background">
       <div className="absolute inset-0">
         <img
           src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-4aEHQZGC4QdzllME4riED3sDGlz7cN.png"
           alt="Background"
           className="w-full h-full object-cover"
+          onError={(e) => {
+            console.error("Background image failed to load");
+            // Add a fallback background color
+            const target = e.target as HTMLImageElement;
+            target.style.display = 'none';
+            target.parentElement!.style.backgroundColor = 'hsl(var(--background))';
+          }}
         />
         <div className="absolute inset-0 bg-black/60"></div>
       </div>

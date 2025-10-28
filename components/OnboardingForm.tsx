@@ -244,7 +244,7 @@ export function OnboardingForm({ onSubmit, isLoading = false }: OnboardingFormPr
 
   return (
     <Card className="max-w-2xl mx-auto">
-      <h2 className="text-2xl font-bold text-dark mb-6">Complete Your Profile</h2>
+      <h2 className="text-2xl font-bold text-foreground mb-6">Complete Your Profile</h2>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -272,10 +272,10 @@ export function OnboardingForm({ onSubmit, isLoading = false }: OnboardingFormPr
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
-            <label className="block text-sm font-semibold text-dark mb-2">Country Code</label>
+            <label className="block text-sm font-semibold text-foreground mb-2">Country Code</label>
             <select
               {...register("phoneCode")}
-              className="w-full px-4 py-3 border-2 border-beige rounded-lg focus:outline-none focus:border-gold"
+              className="w-full px-4 py-3 border-2 border-input rounded-lg focus:outline-none focus:border-primary bg-background text-foreground"
             >
               <option value="">Select Country Code</option>
               {countryCodes.map((country) => (
@@ -285,7 +285,7 @@ export function OnboardingForm({ onSubmit, isLoading = false }: OnboardingFormPr
               ))}
             </select>
             {errors.phoneCode && (
-              <p className="text-red-500 text-sm mt-1">{errors.phoneCode.message}</p>
+              <p className="text-destructive text-sm mt-1">{errors.phoneCode.message}</p>
             )}
           </div>
           <div className="md:col-span-2">

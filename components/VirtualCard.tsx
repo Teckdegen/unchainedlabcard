@@ -32,6 +32,12 @@ export function VirtualCard({
           src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-ax7SBeeNt2ao6E9dhH86Ivy51DaKms.png"
           alt="Card background"
           className="w-full h-full object-cover"
+          onError={(e) => {
+            // Fallback if image fails to load
+            const target = e.target as HTMLImageElement;
+            target.style.display = 'none';
+            target.parentElement!.style.background = 'linear-gradient(135deg, #1a1a1a 0%, #000000 100%)';
+          }}
         />
       </div>
 
@@ -66,6 +72,7 @@ export function VirtualCard({
             <button
               onClick={() => setShowCVV(!showCVV)}
               className="text-green-400 hover:text-green-300 transition-colors"
+              aria-label={showCVV ? "Hide CVV" : "Show CVV"}
             >
               {showCVV ? <EyeOff size={16} /> : <Eye size={16} />}
             </button>
